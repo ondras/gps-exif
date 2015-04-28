@@ -129,13 +129,13 @@ Photo.prototype._parse = function(buffer) {
 	tags["GPSLatitude"].forEach(function(value, index) {
 		lat += value * Math.pow(60, -index);
 	});
-	lat *= (tags["GPSLatitudeRef"] == "N" ? 1 : -1);
+	lat *= (tags["GPSLatitudeRef"] == "S" ? -1 : 1);
 
 	var lon = 0;
 	tags["GPSLongitude"].forEach(function(value, index) {
 		lon += value * Math.pow(60, -index);
 	});
-	lon *= (tags["GPSLongitudeRef"] == "E" ? 1 : -1);
+	lon *= (tags["GPSLongitudeRef"] == "W" ? -1 : 1);
 
 	var coords = SMap.Coords.fromWGS84(lon, lat);
 
