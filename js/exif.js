@@ -202,7 +202,7 @@ Reader.prototype._readIFD = function(ifdStart, tiffStart, names) {
 		var tagStart = ifdStart + i*12 + 2;
 		var tag = this._getValue(tagStart, 2);
 		if (ignore.indexOf(tag) != -1) { continue; }
-		
+
 		var value = this._readTagValue(tagStart, tiffStart);
 		if (value === null) { continue; } /* ignore unknown types */
 
@@ -247,8 +247,9 @@ Reader.prototype._readTagValue = function(tagStart, tiffStart) {
 		case 2: /* ascii, 8-bit byte */
 			var data = [];
 			var start = (count>4 ? longValueStart : shortValueStart);
-			for (var i=0;i<count-1;i++) { 
+			for (var i=0;i<count;i++) {
 				var code = this._getValue(start + i);
+				if (code == 0) { continue; }
 				data.push(String.fromCharCode(code));
 			}
 			return data.join("");

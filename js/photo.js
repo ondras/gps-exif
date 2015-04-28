@@ -115,7 +115,7 @@ Photo.prototype._parse = function(buffer) {
 	try {
 		var exif = new EXIF(data);
 		var tags = exif.getTags();
-		if (!tags["GPSLatitude"]) { 
+		if (!tags["GPSLatitude"]) {
 			this._node.classList.add("nogps");
 			return; 
 		}
