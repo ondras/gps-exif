@@ -17,6 +17,10 @@ body {
 	margin-right: 300px;
 }
 
+#photos:not(:empty) ~ * {
+	display: none;
+}
+
 #photos > * {
 	padding: 8px;
 	border-top: 1px solid gray;
