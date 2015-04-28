@@ -1,0 +1,46 @@
+html, body, #column {
+	height: 100%;
+}
+
+body {
+	margin: 0;
+	font-family: sans-serif;
+}
+
+#column {
+	width: 300px;
+	float: right;
+	overflow: auto;
+}
+
+#map {
+	margin-right: 300px;
+}
+
+#photos > * {
+	padding: 8px;
+	border-bottom: 1px solid gray;
+}
+
+#photos > *::after {
+	content: "";
+	clear: both;
+	display: block;
+}
+
+#photos canvas {
+	float: left;
+	margin-right: 8px;
+}
+
+.gps {
+	background-color: #cfc;
+}
+
+.nogps {
+	background-color: #fcc;
+}
+
+#photos .active {
+	background-color: #fdb;
+}
