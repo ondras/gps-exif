@@ -19,7 +19,7 @@ body {
 
 #photos > * {
 	padding: 8px;
-	border-bottom: 1px solid gray;
+	border-top: 1px solid gray;
 }
 
 #photos > *::after {
@@ -31,6 +31,11 @@ body {
 #photos canvas {
 	float: left;
 	margin-right: 8px;
+}
+
+#photos button {
+	float: right;
+	padding: 1px;
 }
 
 .gps {

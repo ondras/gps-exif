@@ -13,6 +13,9 @@ var App = {
 			break;
 
 			case "click":
+				var name = e.target.nodeName.toLowerCase();
+				if (name == "input" || name == "button") { return; }
+
 				for (var p in this._photos) {
 					var photo = this._photos[p];
 					if (photo.getNode() == e.currentTarget) {

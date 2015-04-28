@@ -1,6 +1,7 @@
 var Photo = function(file) {
 	this._file = file;
 	this._marker = null;
+	this._inputs = {};
 
 	this._node = document.createElement("div");
 	this._node.addEventListener("focus", this, true);
@@ -57,6 +58,14 @@ Photo.prototype.handleEvent = function(e) {
 			node.src = Photo.INACTIVE;
 			node.style.zIndex = "";
 		break;
+
+		case "click":
+			if (e.target.nodeName.toLowerCase() == "button") {
+				this.read();
+			} else {
+				this._node.parentNode.parentNode.scrollTop = this._node.offsetTop;
+			}
+		break;
 	}
 }
 
@@ -64,10 +73,15 @@ Photo.prototype._build = function() {
 	var thumb = this._getThumbnail();
 	this._node.appendChild(thumb);
 
+	var reload = document.createElement("button");
+	reload.innerHTML = "↻";
+	reload.title = "Reload";
+	reload.addEventListener("click", this);
+	this._node.appendChild(reload);
+
 	var name = document.createElement("span");
 	name.innerHTML = this._file.name;
 	this._node.appendChild(name);
-
 }
 
 Photo.prototype._getThumbnail = function() {
@@ -95,6 +109,8 @@ Photo.prototype._getThumbnail = function() {
 
 Photo.prototype._parse = function(buffer) {
 	var data = new Uint8Array(buffer);
+	this._node.classList.remove("gps");
+	this._node.classList.remove("nogps");
 	
 	try {
 		var exif = new EXIF(data);
@@ -115,30 +131,39 @@ Photo.prototype._parse = function(buffer) {
 	});
 	lat *= (tags["GPSLatitudeRef"] == "N" ? 1 : -1);
 
-	var input = document.createElement("input");
-	input.value = lat;
-	input.readOnly = true;
-	this._node.appendChild(input);
-
 	var lon = 0;
 	tags["GPSLongitude"].forEach(function(value, index) {
 		lon += value * Math.pow(60, -index);
 	});
 	lon *= (tags["GPSLongitudeRef"] == "E" ? 1 : -1);
 
-	var input = document.createElement("input");
-	input.value = lon;
-	input.readOnly = true;
-	this._node.appendChild(input);
-
 	var coords = SMap.Coords.fromWGS84(lon, lat);
-	this._marker = new SMap.Marker(coords, null, {url:Photo.INACTIVE});
 
-	var node = this._marker.getActive();
-	node.addEventListener("mouseenter", this);
-	node.addEventListener("mouseleave", this);
+	if (this._marker) {
+		this._marker.setCoords(coords);
+	} else {
+		this._marker = new SMap.Marker(coords, null, {url:Photo.INACTIVE});
 
-	this._node.addEventListener("mouseenter", this);
-	this._node.addEventListener("mouseleave", this);
+		var node = this._marker.getActive();
+		node.addEventListener("mouseenter", this);
+		node.addEventListener("mouseleave", this);
+		node.addEventListener("click", this);
 
+		this._node.addEventListener("mouseenter", this);
+		this._node.addEventListener("mouseleave", this);
+
+		var input = document.createElement("input");
+		input.readOnly = true;
+		this._node.appendChild(input);
+		this._inputs.lat = input;
+
+		var input = document.createElement("input");
+		input.value = lon;
+		input.readOnly = true;
+		this._node.appendChild(input);
+		this._inputs.lon = input;
+	}
+
+	this._inputs.lat.value = lat;
+	this._inputs.lon.value = lon;
 }
