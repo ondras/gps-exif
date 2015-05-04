@@ -28,7 +28,7 @@ var App = {
 			args.push("\"" + photo.getName() + "\"");
 			return args.join(" ");
 		});
-		var str = lines.join("\n");
+		var str = lines.join("\n") + "\n";
 		Modal.show(str);
 	},
 
