@@ -5,51 +5,96 @@ html, body, #column {
 body {
 	margin: 0;
 	font-family: sans-serif;
+	display: flex;
 }
 
 #column {
-	width: 300px;
-	float: right;
+	display: flex;
+	flex: 0 1 300px;
+	flex-direction: column;
 	overflow: auto;
 }
 
+#column button {
+	padding: 0;
+	cursor: pointer;
+}
+
 #map {
-	margin-right: 300px;
+	flex: 1;
 }
 
-#photos:not(:empty) ~ * {
-	display: none;
+#controls {
+	display: flex;
 }
 
-#photos > * {
+#controls > * {
+	flex: 1;
+	font-size: 300%;
+}
+
+#controls a button {
+	width: 100%;
+	font-size: 100%;
+}
+
+.photo {
 	padding: 8px;
 	border-top: 1px solid gray;
+	display: flex;
 }
 
-#photos > *::after {
-	content: "";
-	clear: both;
-	display: block;
-}
-
-#photos canvas {
-	float: left;
-	margin-right: 8px;
-}
-
-#photos button {
-	float: right;
-	padding: 1px;
-}
-
-.gps {
+.photo.gps {
 	background-color: #cfc;
 }
 
-.nogps {
+.photo.nogps {
 	background-color: #fcc;
 }
 
-#photos .active {
+.photo.active {
 	background-color: #fdb;
+}
+
+.photo.changed h3::before {
+	content: "•";
+	font-weight: bold;
+	color: red;
+}
+
+.photo canvas {
+	margin-right: 8px;
+	height: 64px;
+}
+
+.photo h3 {
+	margin-top: 0;
+	margin-bottom: 0.5em;
+	font-weight: normal;
+}
+
+.photo button {
+	min-width: 2em;
+}
+
+.photo:not(:hover) button {
+	display: none;
+}
+
+.bg {
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	background-color: rgba(255, 255, 255, 0.6);
+}
+
+.bg + textarea {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	width: 67%;
+	height: 50%;
+	transform: translate(-50%, -50%);
 }

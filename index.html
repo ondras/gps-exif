@@ -6,22 +6,19 @@
 		<script src="//api.mapy.cz/loader.js"></script>
 		<script>Loader.load();</script>
 		<script src="js/exif.js"></script>
+		<script src="js/modal.js"></script>
 		<script src="js/photo.js"></script>
 		<script src="js/app.js"></script>
 		<link rel="stylesheet" href="style.css" />
 	</head>
 	<body>
-		<div id="column">
-			<input type="file" multiple="multiple" />
-			<div id="photos"></div>
-			<ul>
-				<li>Click the input field above to add image files</li>
-				<li>Right-click the map to show coordinates</li>
-				<li>Click a map marker to scroll the column</li>
-				<li>Click a column item to center the map</li>
-				<li><a href="https://github.com/ondras/gps-exif/">GitHub repo</a></li>
-			</ul>
-		</div>
 		<div id="map"></div>
+		<div id="column">
+			<div id="controls">
+				<button data-action="open" title="Open image file(s)">O</button>
+				<button data-action="export" title="Generate exiftool command line">E</button>
+				<a title="Help" href="https://github.com/ondras/gps-exif/wiki"><button>?</button></a>
+			</div>
+		</div>
 	</body>
 </html>

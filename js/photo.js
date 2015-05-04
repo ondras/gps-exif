@@ -1,10 +1,10 @@
 var Photo = function(file) {
 	this._file = file;
 	this._marker = null;
-	this._inputs = {};
+	this._changed = false;
 
 	this._node = document.createElement("div");
-	this._node.addEventListener("focus", this, true);
+	this._node.classList.add("photo");
 
 	this._build();
 }
@@ -33,26 +33,28 @@ Photo.prototype.getMarker = function() {
 	return this._marker;
 }
 
-Photo.prototype.getId = function() {
+Photo.prototype.getName = function() {
 	return this._file.name;
+}
+
+Photo.prototype.focus = function() {
+	this._node.scrollIntoView();
+}
+
+Photo.prototype.isChanged = function() {
+	return this._changed;
 }
 
 Photo.prototype.handleEvent = function(e) {
 	switch (e.type) {
-		case "focus":
-			var input = e.target;
-			input.selectionStart = 0;
-			input.selectionEnd = input.value.length;
-		break;
-
-		case "mouseenter":
+		case "mouseover":
 			this._node.classList.add("active");
 			var node = this._marker.getActive();
 			node.src = Photo.ACTIVE;
 			node.style.zIndex = 1;
 		break;
 
-		case "mouseleave":
+		case "mouseout":
 			this._node.classList.remove("active");
 			var node = this._marker.getActive();
 			node.src = Photo.INACTIVE;
@@ -60,11 +62,58 @@ Photo.prototype.handleEvent = function(e) {
 		break;
 
 		case "click":
-			if (e.target.nodeName.toLowerCase() == "button") {
-				this.read();
-			} else {
-				this._node.parentNode.parentNode.scrollTop = this._node.offsetTop;
-			}
+			e.stopPropagation();
+			this._clickControl(e.target);
+		break;
+	}
+}
+
+Photo.prototype.setCoords = function(coords, fromEXIF) {
+	if (coords) {
+		this._node.classList.add("gps");
+		this._node.classList.remove("nogps");
+
+		if (this._marker) {
+			this._marker.setCoords(coords);
+		} else {
+			this._marker = new SMap.Marker(coords, null, {url:Photo.INACTIVE});
+			this._marker.decorate(SMap.Marker.Feature.Draggable);
+
+			App.layer.addMarker(this._marker);
+
+			var node = this._marker.getActive();
+			node.addEventListener("mouseover", this);
+			node.addEventListener("mouseout", this);
+
+			this._node.addEventListener("mouseover", this);
+			this._node.addEventListener("mouseout", this);
+		}
+	} else {
+		this._node.classList.remove("gps");
+		this._node.classList.add("nogps");
+
+		if (this._marker) {
+			App.layer.removeMarker(this._marker);
+			this._marker = null;
+		}
+	}
+
+	this._changed = !fromEXIF;
+	this._node.classList[this._changed ? "add" : "remove"]("changed");
+}
+
+Photo.prototype._clickControl = function(node) {
+	switch (node.dataset.action) {
+		case "reload":
+			this.read();
+		break;
+
+		case "import":
+			App.requestCoords(this);
+		break;
+
+		case "export":
+			App.generateCommandLine([this]);
 		break;
 	}
 }
@@ -73,15 +122,35 @@ Photo.prototype._build = function() {
 	var thumb = this._getThumbnail();
 	this._node.appendChild(thumb);
 
+	var div = document.createElement("div");
+	div.addEventListener("click", this);
+	this._node.appendChild(div);
+
+	var name = document.createElement("h3");
+	name.innerHTML = this._file.name;
+	div.appendChild(name);
+
+	this._buildControls(div);
+}
+
+Photo.prototype._buildControls = function(parent) {
 	var reload = document.createElement("button");
+	reload.dataset.action = "reload";
 	reload.innerHTML = "↻";
 	reload.title = "Reload";
-	reload.addEventListener("click", this);
-	this._node.appendChild(reload);
+	parent.appendChild(reload);
 
-	var name = document.createElement("span");
-	name.innerHTML = this._file.name;
-	this._node.appendChild(name);
+	var imp = document.createElement("button");
+	imp.dataset.action = "import";
+	imp.innerHTML = "S";
+	imp.title = "Set position from map or other photo";
+	parent.appendChild(imp);
+
+	var exp = document.createElement("button");
+	exp.dataset.action = "export";
+	exp.innerHTML = "E";
+	exp.title = "Generate exiftool command line";
+	parent.appendChild(exp);
 }
 
 Photo.prototype._getThumbnail = function() {
@@ -114,16 +183,17 @@ Photo.prototype._parse = function(buffer) {
 	
 	try {
 		var exif = new EXIF(data);
-		var tags = exif.getTags();
-		if (!tags["GPSLatitude"]) {
-			this._node.classList.add("nogps");
-			return; 
-		}
 	} catch (e) {
 		console.error(e);
+		this.setCoords(null, true);
+		return;
 	}
 
-	this._node.classList.add("gps");
+	var tags = exif.getTags();
+	if (!tags["GPSLatitude"]) {
+		this.setCoords(null, true);
+		return;
+	}
 
 	var lat = 0;
 	tags["GPSLatitude"].forEach(function(value, index) {
@@ -138,32 +208,5 @@ Photo.prototype._parse = function(buffer) {
 	lon *= (tags["GPSLongitudeRef"] == "W" ? -1 : 1);
 
 	var coords = SMap.Coords.fromWGS84(lon, lat);
-
-	if (this._marker) {
-		this._marker.setCoords(coords);
-	} else {
-		this._marker = new SMap.Marker(coords, null, {url:Photo.INACTIVE});
-
-		var node = this._marker.getActive();
-		node.addEventListener("mouseenter", this);
-		node.addEventListener("mouseleave", this);
-		node.addEventListener("click", this);
-
-		this._node.addEventListener("mouseenter", this);
-		this._node.addEventListener("mouseleave", this);
-
-		var input = document.createElement("input");
-		input.readOnly = true;
-		this._node.appendChild(input);
-		this._inputs.lat = input;
-
-		var input = document.createElement("input");
-		input.value = lon;
-		input.readOnly = true;
-		this._node.appendChild(input);
-		this._inputs.lon = input;
-	}
-
-	this._inputs.lat.value = lat;
-	this._inputs.lon.value = lon;
+	this.setCoords(coords, true);
 }
