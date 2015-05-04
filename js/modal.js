@@ -24,6 +24,8 @@ var Modal = {
 
 	show: function(str) {
 		window.addEventListener("keydown", this);
+		document.addEventListener("click", this);
+		this._node.addEventListener("click", this);
 
 		this._node.value = str;
 		document.body.appendChild(this._bg);
@@ -36,6 +38,8 @@ var Modal = {
 
 	_hide: function() {
 		window.removeEventListener("keydown", this);
+		document.removeEventListener("click", this);
+		this._node.removeEventListener("click", this);
 
 		this._bg.parentNode.removeChild(this._bg);
 		this._node.parentNode.removeChild(this._node);
@@ -46,9 +50,6 @@ var Modal = {
 		this._bg.classList.add("bg");
 
 		this._node = document.createElement("textarea");
-
-		document.addEventListener("click", this);
-		this._node.addEventListener("click", this);
 	}
 }
 window.addEventListener("load", Modal);
