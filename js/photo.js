@@ -62,8 +62,11 @@ Photo.prototype.handleEvent = function(e) {
 		break;
 
 		case "click":
-			e.stopPropagation();
-			this._clickControl(e.target);
+			var action = e.target.dataset.action;
+			if (action) {
+				e.stopPropagation();
+				this._action(action);
+			}
 		break;
 	}
 }
@@ -102,8 +105,8 @@ Photo.prototype.setCoords = function(coords, fromEXIF) {
 	this._node.classList[this._changed ? "add" : "remove"]("changed");
 }
 
-Photo.prototype._clickControl = function(node) {
-	switch (node.dataset.action) {
+Photo.prototype._action = function(action) {
+	switch (action) {
 		case "reload":
 			this.read();
 		break;
