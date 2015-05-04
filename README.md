@@ -3,7 +3,7 @@ A quick overview of your gps-tagged pictures, online, in your browser. Works wit
 
 Try the hosted version: http://ondras.github.io/gps-exif/
 
-For more information, please see the [Wiki](https://github.com/ondras/gps-exif/wiki).
+Please see the [Wiki](https://github.com/ondras/gps-exif/wiki) for more information.
 
 ## Features
 
