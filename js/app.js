@@ -170,14 +170,14 @@ var App = {
 	_load: function(files) {
 		var all = files
 			.filter(function(file) { return file.type == "image/jpeg"; })
-			.map(function(file) { return new Photo(file); }, this)
+			.map(function(file) { return new Photo(file); })
 			.filter(function(photo) { return !(photo.getName() in this._photos); }, this)
 			.map(function(photo) {
 				this._photos[photo.getName()] = photo;
 				var node = photo.getNode();
 				node.addEventListener("click", this);
 				document.querySelector("#column").appendChild(node);
-				return photo.read();
+				return photo.getPromise();
 			}, this);
 
 		Promise.all(all).then(this._showOnMap.bind(this));

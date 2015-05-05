@@ -45,6 +45,7 @@ var TAGS = {
 		0x8824: "SpectralSensitivity",		
 		0x8827: "ISOSpeedRatings",		
 		0x8828: "OECF",			
+		0x8830: "SensitivityType",
 		0x9000: "ExifVersion",			
 		0x9003: "DateTimeOriginal",		
 		0x9004: "DateTimeDigitized",		
@@ -162,19 +163,20 @@ Reader.prototype._scan = function() {
 
 		var marker = this._getValue(offset+1);
 		if (marker == 0xE1) {
-			this._readEXIF(offset+4, this._getValue(offset+2, 2)-2);
+			var ok = this._readEXIF(offset+4, this._getValue(offset+2, 2)-2);
+			if (ok) { return; }
+		} else if (marker == 0xDA) { /* Start Of Scan */
 			return;
-		} else {
-			offset += 2 + this._getValue(offset+2, 2);
 		}
 
+		offset += 2 + this._getValue(offset+2, 2);
 	}
 }
 
 Reader.prototype._readEXIF = function(start, length) {
 	var str = "Exif";
 	for (var i=0;i<str.length;i++) {
-		if (this._getValue(start+i) != str.charCodeAt(i)) { throw new Error("Invalid EXIF section"); }
+		if (this._getValue(start+i) != str.charCodeAt(i)) { return false; } // not EXIF, probably XMP
 	}
 	
 	var tiffStart = start+6;
@@ -190,12 +192,26 @@ Reader.prototype._readEXIF = function(start, length) {
 	if (this._getValue(tiffStart+2, 2) != 0x002A) { throw new Error("Invalid TIFF data (not 0x002A)"); }
 	
 	var firstOffset = this._getValue(tiffStart+4, 4);
-	if (firstOffset != 0x00000008) { throw new Error("Invalid TIFF data (IFD0 offset not 8)"); }
+	if (firstOffset != 0x08) { throw new Error("Invalid TIFF data (IFD0 offset not 8)"); }
 	this._readIFD(tiffStart+firstOffset, tiffStart, TAGS);
+
+	/* extract thumbnail */
+	if (this._tags["JPEGInterchangeFormat"] && this._tags["JPEGInterchangeFormatLength"]) {
+		var offset = this._tags["JPEGInterchangeFormat"];
+		var length = this._tags["JPEGInterchangeFormatLength"];
+		var ctor = this._data.constructor;
+		var thumb = new ctor(length);
+		for (var i=0;i<length;i++) {
+			thumb[i] = this._data[tiffStart + offset + i];
+		}
+		this._tags["Thumbnail"] = thumb;
+	}
+
+	return true;
 }
 
 Reader.prototype._readIFD = function(ifdStart, tiffStart, names) {
-	var ignore = [/*0x927C,*/ 0x9286, 0xC4A5]; /* ignore user comment, printim */
+	var ignore = [0x9286, 0xC4A5]; /* ignore user comment, printim */
 	
 	var count = this._getValue(ifdStart, 2);
 	for (var i=0;i<count;i++) {
@@ -213,6 +229,8 @@ Reader.prototype._readIFD = function(ifdStart, tiffStart, names) {
 			} else {
 				tag = names[tag];
 			}
+		} else {
+			console.warn("Unknown EXIF tag", "0x" + tag.toString(16));
 		}
 		
 		if (value !== null) { this._tags[tag] = value; }
