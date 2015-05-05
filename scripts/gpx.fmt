@@ -22,7 +22,7 @@
 #[HEAD]<trk>
 #[HEAD]<number>1</number>
 #[HEAD]<trkseg>
-#[BODY]<trkpt lat="$gpslatitude#" lon="$gpslongitude#">
+#[BODY]<trkpt lat="$gpslatitude#" lon="$gpslongitude#"> <!-- $filename# -->
 #[BODY]  <ele>$gpsaltitude#</ele>
 #[BODY]  <time>$gpsdatetime</time>
 #[BODY]</trkpt>
