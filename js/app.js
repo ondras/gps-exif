@@ -36,7 +36,7 @@ var App = {
 		switch (e.type) {
 			case "load": this._init(); break;
 
-			case "change": 
+			case "change":
 				var input = e.target;
 				this._load([].slice.call(input.files));
 				input.value = "";
